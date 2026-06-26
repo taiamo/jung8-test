@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>荣格八维测试，平板适配本地 JSON 版，漏题提示</title>
+  <style>
+    :root{
+      --bg:#f6f1e8;
+      --card:#fffaf2;
+      --ink:#241f1a;
+      --muted:#766b60;
+      --line:#e4d7c5;
+      --accent:#8b5e34;
+      --accent2:#2f6f5e;
+      --danger:#9d2f2f;
+      --shadow:0 10px 30px rgba(63,42,21,.08);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html{font-size:16px;-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+    body{margin:0;min-height:100dvh;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;background:radial-gradient(circle at top left,#fff7e6,var(--bg) 35%,#efe6da);color:var(--ink);line-height:1.55;-webkit-tap-highlight-color:transparent}
+    .wrap{max-width:1120px;margin:0 auto;padding:32px max(18px,env(safe-area-inset-right)) 80px max(18px,env(safe-area-inset-left))}
+    header{padding:28px 0 18px}
+    h1{margin:0 0 8px;font-size:clamp(28px,4vw,44px);letter-spacing:-.04em;line-height:1.08}
+    h2,h3{line-height:1.22}
+    .sub{color:var(--muted);max-width:760px;font-size:15px}
+    .grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(340px,.85fr);gap:20px;align-items:start}
+    @media(max-width:920px){.grid{grid-template-columns:1fr}}
+    .card{background:rgba(255,250,242,.86);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;backdrop-filter:blur(8px);scroll-margin-top:18px}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0 0}
+    .fieldrow{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;margin:16px 0 10px}
+    @media(max-width:580px){.fieldrow{grid-template-columns:1fr}}
+    .fieldrow label{font-weight:800;color:#3b2f25}
+    input[type=text]{width:100%;min-height:46px;border:1px solid var(--line);border-radius:14px;background:white;padding:11px 13px;font-size:16px;color:var(--ink);outline:none}
+    input[type=text]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,94,52,.12)}
+    button,.btn{border:0;border-radius:999px;min-height:44px;padding:10px 15px;background:var(--accent);color:white;font-weight:700;cursor:pointer;font-size:14px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:.15s transform,.15s opacity;touch-action:manipulation;white-space:nowrap}
+    button:hover,.btn:hover{transform:translateY(-1px);opacity:.92}
+    @media(hover:none){button:hover,.btn:hover{transform:none;opacity:1}}
+    button.secondary{background:#e8dccd;color:#2f261f}
+    button.green{background:var(--accent2)}
+    button.danger{background:var(--danger)}
+    button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    .progress{height:12px;background:#eadfce;border-radius:999px;overflow:hidden;margin:14px 0 18px}
+    .bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:.2s width}
+    .q{border-top:1px solid var(--line);padding:18px 0;scroll-margin-top:18px}
+    .q:first-child{border-top:0;padding-top:0}
+    .q.missing-question{background:#fff1f1;border:1px solid rgba(157,47,47,.35);border-radius:14px;padding:18px 12px;margin:10px 0;box-shadow:0 0 0 3px rgba(157,47,47,.07)}
+    .q.missing-question .q-title{color:var(--danger)}
+    .q-title{font-weight:750;margin-bottom:10px;display:flex;gap:8px;align-items:flex-start}
+    .q-no{color:var(--accent);font-variant-numeric:tabular-nums;min-width:38px}
+    .scale{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+    @media(max-width:580px){.scale{grid-template-columns:1fr}.scale label{justify-content:flex-start}}
+    .scale label{border:1px solid var(--line);background:white;border-radius:12px;padding:9px 8px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-size:13px;text-align:center;min-height:46px;user-select:none;touch-action:manipulation}
+    .scale input{accent-color:var(--accent);width:18px;height:18px;flex:0 0 auto}
+    .scale label:has(input:checked){border-color:var(--accent);box-shadow:0 0 0 2px rgba(139,94,52,.12);background:#fff5e7}
+    .resultBox{display:none}
+    .pillrow{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+    .pill{padding:6px 10px;border-radius:999px;background:#efe4d5;border:1px solid var(--line);font-weight:700;font-size:13px}
+    .scoreList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+    @media(max-width:560px){.scoreList{grid-template-columns:1fr}}
+    .scoreItem{background:white;border:1px solid var(--line);border-radius:14px;padding:11px;min-width:0}
+    .scoreTop{display:flex;justify-content:space-between;gap:8px;font-weight:750;font-variant-numeric:tabular-nums}
+    .miniBar{height:9px;background:#eee2d1;border-radius:999px;margin-top:8px;overflow:hidden}
+    .miniBar span{display:block;height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));width:0}
+    .muted{color:var(--muted);font-size:13px}
+    #recordsTable{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+    table{width:100%;border-collapse:collapse;font-size:13px;background:white;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+    #recordsTable table{min-width:680px}
+    th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+    th{background:#f0e4d5;color:#3b2f25}
+    tr:last-child td{border-bottom:0}
+    details{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:white;margin-top:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    details table{min-width:520px}
+    summary{font-weight:800;cursor:pointer;min-height:36px;display:flex;align-items:center}
+    code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace}
+    pre{white-space:pre-wrap;background:#211b16;color:#fff6e8;border-radius:14px;padding:14px;max-height:320px;overflow:auto;font-size:12px}
+    .notice{background:#fff3d6;border:1px solid #f1d59d;color:#5d4217;border-radius:14px;padding:12px;margin:12px 0;font-size:13px}
+    .fileInput{display:none}
+    .typeBig{font-size:42px;font-weight:900;letter-spacing:-.05em;margin:4px 0;color:#2a221a;line-height:1}
+    .ranking{margin:8px 0 0;padding-left:18px}
+    .ranking li{margin:4px 0}
+    .logicTable td:first-child{font-weight:800;white-space:nowrap}
+
+    @media (pointer:coarse){
+      button,.btn{min-height:48px;padding:12px 16px;font-size:15px}
+      .scale label{min-height:54px;font-size:14px;padding:11px 8px}
+      .q{padding:20px 0}
+      .q-title{font-size:16px}
+      .pill{font-size:14px;padding:7px 11px}
+    }
+
+    @media (min-width:921px){
+      aside.card{position:sticky;top:18px;max-height:calc(100dvh - 36px);overflow:auto}
+    }
+
+    @media (min-width:768px) and (max-width:1180px){
+      .wrap{max-width:100%;padding:26px max(24px,env(safe-area-inset-right)) 64px max(24px,env(safe-area-inset-left))}
+      header{padding:20px 0 14px}
+      .grid{gap:16px}
+      .card{padding:18px;border-radius:17px}
+      .toolbar{gap:8px}
+      .toolbar button{flex:0 1 auto}
+      .fieldrow{grid-template-columns:100px 1fr}
+      .scale{gap:10px}
+      .scale label{min-height:56px;padding:10px 6px}
+      .typeBig{font-size:40px}
+    }
+
+    @media (min-width:768px) and (max-width:920px){
+      .wrap{max-width:820px}
+      .grid{grid-template-columns:1fr}
+      aside.card{position:static;max-height:none;overflow:visible}
+      .toolbar button{flex:1 1 calc(33.333% - 8px)}
+      #recordsTable table{min-width:760px}
+    }
+
+    @media (orientation:landscape) and (min-width:921px) and (max-width:1180px){
+      .grid{grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr)}
+      .sub{max-width:880px}
+    }
+
+    @media (max-width:767px){
+      .wrap{padding:18px max(14px,env(safe-area-inset-right)) 54px max(14px,env(safe-area-inset-left))}
+      header{padding:14px 0 12px}
+      h1{font-size:30px}
+      .sub{font-size:14px}
+      .card{padding:16px;border-radius:16px}
+      .toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+      .toolbar button{width:100%;white-space:normal;line-height:1.2}
+      .fieldrow{gap:7px}
+      .q-no{min-width:32px}
+      #recordsTable{overflow:visible}
+      #recordsTable table,#recordsTable thead,#recordsTable tbody,#recordsTable tr,#recordsTable td{display:block;width:100%;min-width:0}
+      #recordsTable table{border:0;background:transparent}
+      #recordsTable thead{display:none}
+      #recordsTable tr{background:white;border:1px solid var(--line);border-radius:14px;margin:10px 0;overflow:hidden}
+      #recordsTable td{display:grid;grid-template-columns:82px 1fr;gap:10px;border-bottom:1px solid var(--line);padding:10px 12px}
+      #recordsTable td::before{content:attr(data-label);font-weight:800;color:#3b2f25}
+      #recordsTable td:last-child{border-bottom:0}
+      #recordsTable td:last-child button{width:100%;margin-top:0!important;margin-bottom:6px}
+    }
+
+    @media (max-width:390px){
+      .toolbar{grid-template-columns:1fr}
+      h1{font-size:27px}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>荣格八维测试，平板适配本地 JSON 版</h1>
+    <div class="sub">56 题，八个认知功能各 7 题。结果只用于自我观察，不是“人格身份证”。人格这种东西要是能被 56 个单选框彻底拿捏，人类也太像 Excel 了。</div>
+    <div class="toolbar">
+      <button id="shuffleBtn" class="secondary">随机题序</button>
+      <button id="resetDraftBtn" class="secondary">清空当前作答</button>
+      <button id="exportBtn" class="green">导出 JSON</button>
+      <button id="saveFileBtn" class="green">保存到本地 JSON 文件</button>
+      <button id="importBtn" class="secondary">导入 JSON</button>
+      <input id="importFile" class="fileInput" type="file" accept="application/json,.json" />
+    </div>
+  </header>
+
+  <div class="grid">
+    <main class="card">
+      <h2 style="margin-top:0">题目</h2>
+      <div class="fieldrow">
+        <label for="remarkInput">备注名</label>
+        <input id="remarkInput" type="text" maxlength="80" placeholder="例如：2026-06-26 晚上状态，别写成宇宙主宰版" />
+      </div>
+      <div class="muted">评分：1 极不同意，2 不同意，3 不确定，4 同意，5 极同意。请按“平时自然反应”答，不要按“我理想中想成为的神人”答。</div>
+      <div class="progress"><div id="bar" class="bar"></div></div>
+      <div id="questions"></div>
+      <div class="toolbar">
+        <button id="submitBtn">计算结果并保存记录</button>
+        <button id="scrollResultBtn" class="secondary">查看结果</button>
+      </div>
+      <div id="missing" class="notice" style="display:none"></div>
+    </main>
+
+    <aside class="card">
+      <section id="resultBox" class="resultBox">
+        <div class="muted">最终倾向</div>
+        <div id="finalType" class="typeBig">-</div>
+        <div id="resultRemark" class="muted"></div>
+        <div id="confidence" class="muted"></div>
+        <div class="pillrow" id="topFunctions"></div>
+        <h3>八维分数</h3>
+        <div id="scoreList" class="scoreList"></div>
+        <h3>类型候选</h3>
+        <ol id="typeRanking" class="ranking"></ol>
+      </section>
+
+      <section>
+        <h3>答题记录</h3>
+        <div class="muted">记录会自动写入浏览器 localStorage。要变成真正的本地 .json 文件，请点“导出 JSON”或“保存到本地 JSON 文件”。</div>
+        <div id="recordsTable" style="margin-top:12px"></div>
+        <div class="toolbar">
+          <button id="clearRecordsBtn" class="danger">清空全部记录</button>
+        </div>
+      </section>
+
+      <details open>
+        <summary>判断逻辑</summary>
+        <p class="muted">每题绑定一个功能。所有题默认正向计分：选 1–5 分，按功能求平均值。再用 16 型功能堆栈做加权匹配。</p>
+        <table class="logicTable">
+          <tr><th>项目</th><th>规则</th></tr>
+          <tr><td>功能分</td><td>某功能平均分 = 该功能题目总分 / 该功能题数</td></tr>
+          <tr><td>类型分</td><td>主导×1.00 + 辅助×0.80 + 第三×0.55 + 劣势×0.35，再除以 2.70</td></tr>
+          <tr><td>最终结果</td><td>16 型中类型分最高者</td></tr>
+          <tr><td>置信度</td><td>第一名与第二名差距 ≥0.35 为高，≥0.18 为中，否则低</td></tr>
+        </table>
+        <p class="muted">我的看法：八维测试最有价值的不是“你是什么型”，而是看到你的注意力默认把油门踩在哪里。高分功能像惯用手，低分功能像系统后台偷偷报错。</p>
+      </details>
+
+      <details>
+        <summary>JSON 数据结构</summary>
+        <pre id="schemaPreview"></pre>
+      </details>
+    </aside>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'jung8_records_v1';
+const DRAFT_KEY = 'jung8_draft_v1';
+const REMARK_KEY = 'jung8_remark_v1';
+
+const functionNames = {
+  Se:'Se 外倾感觉', Si:'Si 内倾感觉', Ne:'Ne 外倾直觉', Ni:'Ni 内倾直觉',
+  Te:'Te 外倾思维', Ti:'Ti 内倾思维', Fe:'Fe 外倾情感', Fi:'Fi 内倾情感'
+};
+
+const questions = [
+  {id:'Se01', fn:'Se', text:'我容易注意到现场的颜色、声音、气味、材质、空间变化'},
+  {id:'Se02', fn:'Se', text:'遇到突发状况时，我倾向先动手处理，再慢慢分析'},
+  {id:'Se03', fn:'Se', text:'我喜欢直接体验，比起看说明，更愿意上手试'},
+  {id:'Se04', fn:'Se', text:'我对身体动作、工具操作、环境细节的反馈比较敏感'},
+  {id:'Se05', fn:'Se', text:'当机会突然出现时，我通常能快速抓住，不太想拖太久'},
+  {id:'Se06', fn:'Se', text:'我享受即时、真实、可感知的刺激，而不是一直停留在脑内推演'},
+  {id:'Se07', fn:'Se', text:'我能较快判断一个场景里哪里有风险、哪里有机会、哪里可以直接行动'},
+
+  {id:'Si01', fn:'Si', text:'我会把新情况和过去经验对照，看看哪里相似、哪里不对劲'},
+  {id:'Si02', fn:'Si', text:'我重视稳定流程，熟悉的方法会让我更安心'},
+  {id:'Si03', fn:'Si', text:'我能记住很多细节，比如时间、步骤、习惯、物品位置'},
+  {id:'Si04', fn:'Si', text:'做事前，我倾向先确认规则、标准、历史记录或参考案例'},
+  {id:'Si05', fn:'Si', text:'如果一个方法长期有效，我不会因为新鲜感就轻易换掉它'},
+  {id:'Si06', fn:'Si', text:'我对身体状态、舒适度、节奏变化比较敏感'},
+  {id:'Si07', fn:'Si', text:'我喜欢把经验沉淀成清单、模板、步骤，下一次更稳地复用'},
+
+  {id:'Ne01', fn:'Ne', text:'看到一个东西，我很快会联想到很多可能用途或延伸方向'},
+  {id:'Ne02', fn:'Ne', text:'我喜欢头脑风暴，不怕想法离谱，先打开可能性再说'},
+  {id:'Ne03', fn:'Ne', text:'我经常能把看似无关的概念连接起来'},
+  {id:'Ne04', fn:'Ne', text:'面对问题时，我会同时想到好几条路线，而不是只盯着一种解法'},
+  {id:'Ne05', fn:'Ne', text:'我对新趋势、新玩法、新组合很敏感，容易被“还能这样？”吸引'},
+  {id:'Ne06', fn:'Ne', text:'比起确定答案，我有时更享受探索各种假设'},
+  {id:'Ne07', fn:'Ne', text:'我能快速提出替代方案、备选方案、反向方案'},
+
+  {id:'Ni01', fn:'Ni', text:'我常会试图抓住一件事背后的核心走向，而不是只看表面信息'},
+  {id:'Ni02', fn:'Ni', text:'我会把零散信息压缩成一个关键洞察或长期判断'},
+  {id:'Ni03', fn:'Ni', text:'我经常对某件事未来会怎样发展有强烈预感'},
+  {id:'Ni04', fn:'Ni', text:'我更喜欢深入一条主线，而不是长期在很多可能性之间跳来跳去'},
+  {id:'Ni05', fn:'Ni', text:'我会反复思考某个模式、象征或隐含意义，直到它变清楚'},
+  {id:'Ni06', fn:'Ni', text:'我做重要选择时，会看它是否符合一个长期图景'},
+  {id:'Ni07', fn:'Ni', text:'我经常先有一个整体结论，再慢慢补全它的理由和证据'},
+
+  {id:'Te01', fn:'Te', text:'我做决定时很看重结果、效率、成本、收益、指标'},
+  {id:'Te02', fn:'Te', text:'我喜欢把目标拆成任务、时间表、负责人和可检查标准'},
+  {id:'Te03', fn:'Te', text:'当团队混乱时，我会自然想建立流程和优先级'},
+  {id:'Te04', fn:'Te', text:'我更信服可验证的数据和外部结果，而不是纯主观感受'},
+  {id:'Te05', fn:'Te', text:'我能较快判断一个方案是否可执行、是否值得投入资源'},
+  {id:'Te06', fn:'Te', text:'沟通问题时，我倾向直接说结论、目标和下一步'},
+  {id:'Te07', fn:'Te', text:'我喜欢优化系统，让事情更快、更省、更可复制'},
+
+  {id:'Ti01', fn:'Ti', text:'我会在意概念定义是否准确，逻辑链条是否自洽'},
+  {id:'Ti02', fn:'Ti', text:'面对观点时，我会先拆解它的前提、结构和漏洞'},
+  {id:'Ti03', fn:'Ti', text:'我喜欢弄清楚一个系统内部到底如何运作'},
+  {id:'Ti04', fn:'Ti', text:'即使多数人都同意，我也会检查这件事在逻辑上是否站得住'},
+  {id:'Ti05', fn:'Ti', text:'我更看重推理是否严密，而不是表达是否好听'},
+  {id:'Ti06', fn:'Ti', text:'我习惯建立自己的理解框架，不太满足于照搬标准答案'},
+  {id:'Ti07', fn:'Ti', text:'我享受把复杂问题拆成清楚的原则、变量和关系'},
+
+  {id:'Fe01', fn:'Fe', text:'我很容易感受到一个群体的气氛是紧张、轻松还是尴尬'},
+  {id:'Fe02', fn:'Fe', text:'表达观点时，我会考虑别人是否能接受、是否会被冒犯'},
+  {id:'Fe03', fn:'Fe', text:'我倾向促成共识，让大家愿意一起推进事情'},
+  {id:'Fe04', fn:'Fe', text:'看到别人情绪不对，我会自然想调节现场气氛'},
+  {id:'Fe05', fn:'Fe', text:'我重视礼貌、分寸、互相照顾和关系里的默契'},
+  {id:'Fe06', fn:'Fe', text:'我能根据对方的反应调整自己的说法和节奏'},
+  {id:'Fe07', fn:'Fe', text:'如果团队里有人被忽略，我会比较快注意到'},
+
+  {id:'Fi01', fn:'Fi', text:'我很在意一件事是否符合我内心真正认可的价值'},
+  {id:'Fi02', fn:'Fi', text:'我不喜欢为了迎合别人而说违心的话'},
+  {id:'Fi03', fn:'Fi', text:'我会尊重每个人独特的感受、选择和边界'},
+  {id:'Fi04', fn:'Fi', text:'面对重要决定时，我会问自己：这是不是我真正想要的'},
+  {id:'Fi05', fn:'Fi', text:'我对虚伪、背叛、价值观不一致的事情很敏感'},
+  {id:'Fi06', fn:'Fi', text:'我更喜欢真诚表达，而不是表面和谐但内心别扭'},
+  {id:'Fi07', fn:'Fi', text:'我常用个人意义、喜欢与否、道德边界来判断事情'}
+];
+
+const typeStacks = {
+  INTJ:['Ni','Te','Fi','Se'], ENTJ:['Te','Ni','Se','Fi'],
+  INFJ:['Ni','Fe','Ti','Se'], ENFJ:['Fe','Ni','Se','Ti'],
+  ISTJ:['Si','Te','Fi','Ne'], ESTJ:['Te','Si','Ne','Fi'],
+  ISFJ:['Si','Fe','Ti','Ne'], ESFJ:['Fe','Si','Ne','Ti'],
+  INTP:['Ti','Ne','Si','Fe'], ENTP:['Ne','Ti','Fe','Si'],
+  INFP:['Fi','Ne','Si','Te'], ENFP:['Ne','Fi','Te','Si'],
+  ISTP:['Ti','Se','Ni','Fe'], ESTP:['Se','Ti','Fe','Ni'],
+  ISFP:['Fi','Se','Ni','Te'], ESFP:['Se','Fi','Te','Ni']
+};
+const weights = [1.00, 0.80, 0.55, 0.35];
+let questionOrder = [...questions];
+let activeRecordId = null;
+
+const $ = id => document.getElementById(id);
+
+function loadJSON(key, fallback){
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+  catch(e){ return fallback; }
+}
+function saveJSON(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
+function uuid(){
+  if (crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+}
+function nowISO(){ return new Date().toISOString(); }
+function getRemark(){ return ($('remarkInput')?.value || '').trim(); }
+function setRemark(value){ if ($('remarkInput')) $('remarkInput').value = value || ''; }
+function safeFilenamePart(str){
+  const cleaned = String(str || '未备注').trim().replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, '-').slice(0, 60);
+  return cleaned || '未备注';
+}
+function fileTimeStamp(date = new Date()){
+  const pad = n => String(n).padStart(2, '0');
+  return `${date.getFullYear()}${pad(date.getMonth()+1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+}
+function escapeHTML(str){
+  return String(str).replace(/[&<>'"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[s]));
+}
+
+function initRemarkAutosave(){
+  setRemark(localStorage.getItem(REMARK_KEY) || '');
+  $('remarkInput')?.addEventListener('input', () => localStorage.setItem(REMARK_KEY, getRemark()));
+}
+
+function renderQuestions(){
+  const draft = loadJSON(DRAFT_KEY, {});
+  $('questions').innerHTML = questionOrder.map((q, idx) => `
+    <div class="q" data-id="${q.id}">
+      <div class="q-title"><span class="q-no">${idx + 1}.</span><span>${escapeHTML(q.text)}</span></div>
+      <div class="scale">
+        ${[1,2,3,4,5].map(v => `
+          <label><input type="radio" name="${q.id}" value="${v}" ${draft[q.id] == v ? 'checked' : ''}>${v} ${['极不同意','不同意','不确定','同意','极同意'][v-1]}</label>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+  document.querySelectorAll('input[type=radio]').forEach(input => {
+    input.addEventListener('change', () => {
+      const answers = getCurrentAnswers();
+      saveJSON(DRAFT_KEY, answers);
+      input.closest('.q')?.classList.remove('missing-question');
+      updateProgress();
+      refreshMissingNoticeIfOpen();
+    });
+  });
+  updateProgress();
+}
+
+function getCurrentAnswers(){
+  const answers = {};
+  questions.forEach(q => {
+    const checked = document.querySelector(`input[name="${q.id}"]:checked`);
+    if (checked) answers[q.id] = Number(checked.value);
+  });
+  return answers;
+}
+
+function getMissingQuestions(answers = getCurrentAnswers()){
+  return questionOrder
+    .map((q, index) => ({...q, number:index + 1}))
+    .filter(q => !answers[q.id]);
+}
+
+function clearMissingMarks(){
+  document.querySelectorAll('.q.missing-question').forEach(el => el.classList.remove('missing-question'));
+}
+
+function hideMissingNotice(){
+  clearMissingMarks();
+  $('missing').style.display = 'none';
+  $('missing').innerHTML = '';
+}
+
+function showMissingNotice(missing, shouldScroll = true){
+  clearMissingMarks();
+  missing.forEach(q => {
+    document.querySelector(`.q[data-id="${q.id}"]`)?.classList.add('missing-question');
+  });
+  const visible = missing.slice(0, 24).map(q => `第 ${q.number} 题`).join('、');
+  const tail = missing.length > 24 ? ' ……' : '';
+  const first = missing[0];
+  $('missing').style.display = 'block';
+  $('missing').innerHTML = `还有 ${missing.length} 题未作答：${visible}${tail}<br><span class="muted">已定位到第 ${first.number} 题：${escapeHTML(first.text)}</span>`;
+  if (shouldScroll) {
+    document.querySelector(`.q[data-id="${first.id}"]`)?.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+}
+
+function refreshMissingNoticeIfOpen(){
+  if ($('missing').style.display === 'none') return;
+  const missing = getMissingQuestions();
+  if (missing.length) showMissingNotice(missing, false);
+  else hideMissingNotice();
+}
+
+function updateProgress(){
+  const count = Object.keys(getCurrentAnswers()).length;
+  const pct = Math.round(count / questions.length * 100);
+  $('bar').style.width = pct + '%';
+  $('submitBtn').textContent = `计算结果并保存记录（${count}/${questions.length}）`;
+}
+
+function calculate(answers){
+  const groups = {};
+  Object.keys(functionNames).forEach(fn => groups[fn] = []);
+  questions.forEach(q => {
+    const value = Number(answers[q.id]);
+    if (!Number.isNaN(value)) groups[q.fn].push(value);
+  });
+  const scores = {};
+  Object.entries(groups).forEach(([fn, arr]) => {
+    const avg = arr.length ? arr.reduce((a,b)=>a+b,0) / arr.length : 0;
+    scores[fn] = Number(avg.toFixed(2));
+  });
+  const typeRanking = Object.entries(typeStacks).map(([type, stack]) => {
+    const weighted = stack.reduce((sum, fn, i) => sum + scores[fn] * weights[i], 0) / weights.reduce((a,b)=>a+b,0);
+    return {
+      type,
+      stack,
+      score: Number(weighted.toFixed(3)),
+      formula: `${stack[0]}×1.00 + ${stack[1]}×0.80 + ${stack[2]}×0.55 + ${stack[3]}×0.35`
+    };
+  }).sort((a,b)=>b.score-a.score);
+  const topFunctions = Object.entries(scores)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([fn, score]) => ({fn, name:functionNames[fn], score}));
+  const margin = Number((typeRanking[0].score - typeRanking[1].score).toFixed(3));
+  const confidence = margin >= 0.35 ? '高' : margin >= 0.18 ? '中' : '低';
+  return {scores, topFunctions, typeRanking, finalType:typeRanking[0].type, confidence, margin};
+}
+
+function renderResult(result, remarkName = ''){
+  $('resultBox').style.display = 'block';
+  $('finalType').textContent = result.finalType;
+  $('resultRemark').textContent = remarkName ? `备注：${remarkName}` : '备注：未填写';
+  $('confidence').textContent = `置信度：${result.confidence}，第一名领先第二名 ${result.margin}`;
+  $('topFunctions').innerHTML = result.topFunctions.slice(0,4).map(x => `<span class="pill">${x.name} ${x.score}</span>`).join('');
+  $('scoreList').innerHTML = result.topFunctions.map(x => `
+    <div class="scoreItem">
+      <div class="scoreTop"><span>${x.name}</span><span>${x.score}/5</span></div>
+      <div class="miniBar"><span style="width:${x.score/5*100}%"></span></div>
+    </div>
+  `).join('');
+  $('typeRanking').innerHTML = result.typeRanking.slice(0,5).map(x => `
+    <li><strong>${x.type}</strong>，${x.score}，堆栈 ${x.stack.join(' - ')}</li>
+  `).join('');
+}
+
+function makeRecord(){
+  const answers = getCurrentAnswers();
+  const missing = getMissingQuestions(answers);
+  if (missing.length) {
+    showMissingNotice(missing);
+    return null;
+  }
+  hideMissingNotice();
+  const result = calculate(answers);
+  return {
+    id: uuid(),
+    createdAt: nowISO(),
+    remarkName: getRemark(),
+    testName: 'Jung Eight Functions Local Test',
+    version: '1.3.0',
+    scale: {min:1, max:5, labels:['极不同意','不同意','不确定','同意','极同意']},
+    answers,
+    scores: result.scores,
+    topFunctions: result.topFunctions,
+    finalResult: {
+      type: result.finalType,
+      confidence: result.confidence,
+      margin: result.margin,
+      typeRanking: result.typeRanking
+    }
+  };
+}
+
+function getRecords(){ return loadJSON(STORAGE_KEY, []); }
+function setRecords(records){ saveJSON(STORAGE_KEY, records); renderRecords(); }
+
+function renderRecords(){
+  const records = getRecords();
+  if (!records.length) {
+    $('recordsTable').innerHTML = '<div class="notice">暂无记录。提交一次测试后，这里会出现你的本地记录。</div>';
+    return;
+  }
+  $('recordsTable').innerHTML = `
+    <table>
+      <thead><tr><th>时间</th><th>备注</th><th>结果</th><th>最高功能</th><th>操作</th></tr></thead>
+      <tbody>
+        ${records.slice().reverse().map(r => `
+          <tr>
+            <td data-label="时间">${new Date(r.createdAt).toLocaleString()}</td>
+            <td data-label="备注">${escapeHTML(r.remarkName || '未填写')}</td>
+            <td data-label="结果">${r.finalResult.type}<br><span class="muted">${r.finalResult.confidence}，领先 ${r.finalResult.margin}</span></td>
+            <td data-label="最高功能">${r.topFunctions.slice(0,3).map(x=>`${x.fn} ${x.score}`).join('<br>')}</td>
+            <td data-label="操作"><button class="secondary" onclick="loadRecord('${r.id}')">查看</button><br><button class="green" style="margin-top:6px" onclick="exportRecord('${r.id}')">导出</button><br><button class="danger" style="margin-top:6px" onclick="deleteRecord('${r.id}')">删除</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+window.loadRecord = function(id){
+  const record = getRecords().find(r => r.id === id);
+  if (!record) return;
+  activeRecordId = record.id;
+  saveJSON(DRAFT_KEY, record.answers);
+  localStorage.setItem(REMARK_KEY, record.remarkName || '');
+  renderQuestions();
+  setRemark(record.remarkName || '');
+  renderResult({
+    scores: record.scores,
+    topFunctions: record.topFunctions,
+    typeRanking: record.finalResult.typeRanking,
+    finalType: record.finalResult.type,
+    confidence: record.finalResult.confidence,
+    margin: record.finalResult.margin
+  }, record.remarkName || '');
+  window.scrollTo({top:0, behavior:'smooth'});
+};
+
+window.deleteRecord = function(id){
+  const records = getRecords().filter(r => r.id !== id);
+  if (activeRecordId === id) activeRecordId = null;
+  setRecords(records);
+};
+
+window.exportRecord = function(id){
+  const record = getRecords().find(r => r.id === id);
+  if (!record) return;
+  downloadJSON(exportFilename(record), compactExportObject(record));
+};
+
+function answerLabel(value){ return ['极不同意','不同意','不确定','同意','极同意'][Number(value)-1] || ''; }
+
+function compactExportObject(record){
+  return {
+    '时间': record.createdAt,
+    '备注名': record.remarkName || '',
+    '最终的MBTI': record.finalResult.type,
+    '八维分数': record.scores,
+    '类型候选': record.finalResult.typeRanking.map(x => ({
+      'MBTI': x.type,
+      '分数': x.score,
+      '功能堆栈': x.stack
+    })),
+    '置信度': {
+      '等级': record.finalResult.confidence,
+      '第一名领先第二名': record.finalResult.margin
+    },
+    '答题记录': questions.map(q => ({
+      '题号': q.id,
+      '功能': q.fn,
+      '题目': q.text,
+      '回答': Number(record.answers[q.id]),
+      '回答文本': answerLabel(record.answers[q.id])
+    }))
+  };
+}
+
+function exportFilename(record){
+  return `jung8-${safeFilenamePart(record.remarkName)}-${fileTimeStamp(new Date(record.createdAt))}.json`;
+}
+
+function getRecordForExport(){
+  const answeredCount = Object.keys(getCurrentAnswers()).length;
+  if (answeredCount === questions.length) return makeRecord();
+  const records = getRecords();
+  if (activeRecordId) {
+    const active = records.find(r => r.id === activeRecordId);
+    if (active) return active;
+  }
+  if (records.length) return records[records.length - 1];
+  $('missing').style.display = 'block';
+  $('missing').innerHTML = '还没有可导出的完整记录。先答完并提交，别让 JSON 空着肚子上路。';
+  return null;
+}
+
+function downloadJSON(filename, data){
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function saveToLocalFile(){
+  const record = getRecordForExport();
+  if (!record) return;
+  const data = compactExportObject(record);
+  const filename = exportFilename(record);
+  if ('showSaveFilePicker' in window) {
+    const handle = await window.showSaveFilePicker({
+      suggestedName: filename,
+      types: [{description:'JSON 文件', accept:{'application/json':['.json']}}]
+    });
+    const writable = await handle.createWritable();
+    await writable.write(JSON.stringify(data, null, 2));
+    await writable.close();
+    alert('已保存到你选择的本地 JSON 文件。');
+  } else {
+    downloadJSON(filename, data);
+    alert('当前浏览器不支持直接写文件，已改为下载 JSON。');
+  }
+}
+
+$('submitBtn').addEventListener('click', () => {
+  const record = makeRecord();
+  if (!record) return;
+  const records = getRecords();
+  records.push(record);
+  activeRecordId = record.id;
+  setRecords(records);
+  localStorage.removeItem(DRAFT_KEY);
+  localStorage.setItem(REMARK_KEY, record.remarkName || '');
+  renderResult({
+    scores: record.scores,
+    topFunctions: record.topFunctions,
+    typeRanking: record.finalResult.typeRanking,
+    finalType: record.finalResult.type,
+    confidence: record.finalResult.confidence,
+    margin: record.finalResult.margin
+  }, record.remarkName || '');
+  $('resultBox').scrollIntoView({behavior:'smooth', block:'start'});
+});
+
+$('shuffleBtn').addEventListener('click', () => {
+  questionOrder = [...questionOrder].sort(() => Math.random() - .5);
+  renderQuestions();
+});
+
+$('resetDraftBtn').addEventListener('click', () => {
+  localStorage.removeItem(DRAFT_KEY);
+  localStorage.removeItem(REMARK_KEY);
+  activeRecordId = null;
+  setRemark('');
+  renderQuestions();
+  hideMissingNotice();
+});
+
+$('exportBtn').addEventListener('click', () => {
+  const record = getRecordForExport();
+  if (!record) return;
+  downloadJSON(exportFilename(record), compactExportObject(record));
+});
+
+$('saveFileBtn').addEventListener('click', () => {
+  saveToLocalFile().catch(err => {
+    if (err && err.name === 'AbortError') return;
+    alert('保存失败：' + err.message);
+  });
+});
+
+$('importBtn').addEventListener('click', () => $('importFile').click());
+$('importFile').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const text = await file.text();
+  let data;
+  try { data = JSON.parse(text); }
+  catch(err){ alert('JSON 解析失败'); return; }
+  let records = Array.isArray(data) ? data : data.records;
+  if (!Array.isArray(records) && data['答题记录']) {
+    const answers = {};
+    data['答题记录'].forEach(x => { if (x['题号']) answers[x['题号']] = Number(x['回答']); });
+    const result = calculate(answers);
+    records = [{
+      id: uuid(),
+      createdAt: data['时间'] || nowISO(),
+      remarkName: data['备注名'] || '',
+      testName: 'Jung Eight Functions Local Test',
+      version: '1.3.0',
+      answers,
+      scores: data['八维分数'] || result.scores,
+      topFunctions: Object.entries(data['八维分数'] || result.scores).sort((a,b)=>b[1]-a[1]).map(([fn, score]) => ({fn, name:functionNames[fn], score})),
+      finalResult: {
+        type: data['最终的MBTI'] || result.finalType,
+        confidence: data['置信度']?.['等级'] || result.confidence,
+        margin: data['置信度']?.['第一名领先第二名'] ?? result.margin,
+        typeRanking: result.typeRanking
+      }
+    }];
+  }
+  if (!Array.isArray(records)) { alert('没有找到可导入的记录'); return; }
+  setRecords(records);
+  alert(`已导入 ${records.length} 条记录。`);
+  e.target.value = '';
+});
+
+$('clearRecordsBtn').addEventListener('click', () => {
+  if (!confirm('确定清空全部本地记录？这不是撤回，是人格数据大扫除。')) return;
+  setRecords([]);
+});
+
+$('scrollResultBtn').addEventListener('click', () => $('resultBox').scrollIntoView({behavior:'smooth'}));
+
+$('schemaPreview').textContent = JSON.stringify({
+  '时间':'2026-06-26T00:00:00.000Z',
+  '备注名':'第一次测试',
+  '最终的MBTI':'ENTP',
+  '八维分数':{Se:3.71, Si:2.86, Ne:4.57, Ni:4.00, Te:3.80, Ti:4.10, Fe:2.70, Fi:3.90},
+  '类型候选':[
+    {'MBTI':'ENTP', '分数':4.02, '功能堆栈':['Ne','Ti','Fe','Si']},
+    {'MBTI':'INTP', '分数':3.91, '功能堆栈':['Ti','Ne','Si','Fe']}
+  ],
+  '置信度':{'等级':'中', '第一名领先第二名':0.24},
+  '答题记录':[
+    {'题号':'Ne01', '功能':'Ne', '题目':'看到一个东西，我很快会联想到很多可能用途或延伸方向', '回答':5, '回答文本':'极同意'}
+  ]
+}, null, 2);
+
+initRemarkAutosave();
+renderQuestions();
+renderRecords();
+</script>
+</body>
+</html>
